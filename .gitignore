@@ -1,1 +1,6 @@
 **/*.trace
+
+.DS_Store
+
+
+
