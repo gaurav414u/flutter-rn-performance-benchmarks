@@ -77,7 +77,7 @@ export default class FlatListBasics extends Component {
         <Button
           style={[{position: 'absolute', top: 50, left: 0}]}
           onPress={this._startAutoPlay}
-          title="Start scrool"
+          title="Start scroll"
           color="grey"
         />
         <FlatList
