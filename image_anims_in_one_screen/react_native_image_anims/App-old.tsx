@@ -56,18 +56,6 @@ for (let i = 0; i < data.length; i++) {
 }
 
 const App = () => {
-  const globalAnimation = useSharedValue(0);
-
-  useEffect(() => {
-    globalAnimation.value = withRepeat(
-      withTiming(1, {
-        duration: 5000,
-        easing: Easing.linear,
-      }),
-      -1
-    );
-  }, [globalAnimation]);
-
   return (
     <>
       <StatusBar barStyle="dark-content" />
