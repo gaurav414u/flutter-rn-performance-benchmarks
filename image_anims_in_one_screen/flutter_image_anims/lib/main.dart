@@ -176,7 +176,6 @@ class _GridFadeItemState extends State<GridFadeItem>
 
   @override
   Widget build(BuildContext context) {
-    print("width = " + width.toString());
     return FadeTransition(
       opacity: Tween(begin: 0.0, end: 1.0).animate(animationController),
       child: Image.asset(
