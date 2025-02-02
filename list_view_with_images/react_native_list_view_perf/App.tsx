@@ -73,15 +73,16 @@ export default class FlatListBasics extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={[{marginTop: 25}]} />
-        <Button
-          style={[{position: 'absolute', top: 50, left: 0}]}
-          onPress={this._startAutoPlay}
-          title="Start scroll"
-          color="grey"
-        />
+        <View style={{margin: 16}}>
+          <Button
+            onPress={this._startAutoPlay}
+            title="Start scroll"
+            color="grey"
+          />
+        </View>
         <FlatList
           ref={flatListRef}
+          style={[{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}]}
           testID={'long_list'}
           accessibilityLabel={'long_list'}
           data={data}
