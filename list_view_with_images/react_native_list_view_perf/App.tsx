@@ -15,6 +15,8 @@ import Animated, {
   withTiming,
   withRepeat,
 } from 'react-native-reanimated';
+import { FlashList } from "@shopify/flash-list";
+
 
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 
@@ -37,22 +39,28 @@ let data = Array(1001)
 
 let currentOffset = 0;
 let intervalTime = 300;
+const scrollDuration = 500000; // 500 seconds in milliseconds
 const flatListRef = createRef();
 
-export default class FlatListBasics extends Component {
-  _scroolOffset = () => {
-    if (currentOffset >= data.length * (styles.item.height + 16)) {
+export default class App extends Component {
+  _scrollOffset = (speed, totalScroll) => {
+    if (currentOffset >= totalScroll) {
       this._stopAutoPlay();
     }
     flatListRef.current.scrollToOffset({
       offset: currentOffset,
       animated: true,
     });
-    currentOffset += 410;
+    currentOffset += speed;
   };
 
   _startAutoPlay = () => {
-    this._timerId = setInterval(this._scroolOffset, intervalTime);
+    const totalScrollDistance = data.length * (styles.item.height + 16);
+    const steps = scrollDuration / intervalTime; // Number of steps
+    const scrollSpeed = totalScrollDistance / steps; // Pixels per step
+
+
+    this._timerId = setInterval(() => this._scrollOffset(scrollSpeed, totalScrollDistance), intervalTime);
   };
 
   _stopAutoPlay = () => {
@@ -73,16 +81,8 @@ export default class FlatListBasics extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <View style={{margin: 16}}>
-          <Button
-            onPress={this._startAutoPlay}
-            title="Start scroll"
-            color="grey"
-          />
-        </View>
-        <FlatList
+        <FlashList
           ref={flatListRef}
-          style={[{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}]}
           testID={'long_list'}
           accessibilityLabel={'long_list'}
           data={data}
@@ -94,6 +94,9 @@ export default class FlatListBasics extends Component {
             );
           }}
         />
+        <View style={[{position: 'absolute', top: 16, left: 16, right: 16}]}>
+          <Button onPress={this._startAutoPlay} title="Start scroll" />
+        </View>
       </View>
     );
   }
