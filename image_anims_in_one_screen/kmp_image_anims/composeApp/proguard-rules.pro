@@ -1,0 +1,3 @@
+-keep class com.ionspin.kotlin.crypto.** { *; }
+-keep class com.sun.jna.** { *; }
+-dontwarn java.awt.**
