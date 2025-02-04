@@ -8,15 +8,20 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
@@ -32,7 +37,8 @@ fun App() {
     }
 }
 
-val LocalImageWidth = staticCompositionLocalOf<Int> { error("Column width not provided") }
+val LocalImageWidth = staticCompositionLocalOf<Dp> { error("Column width not provided") }
+val LocalImageWidthPx = staticCompositionLocalOf<Int> { error("Column width not provided") }
 
 
 @Composable
@@ -41,8 +47,15 @@ fun GridScreen() {
     val screenWidth = getScreenWidth()
     val imageWidth = screenWidth / 10
 
+    val imageWidthPx = with(
+        androidx.compose.ui.platform.LocalDensity.current
+    ) { imageWidth.toPx().toInt() }
+
     val infiniteTransition = rememberInfiniteTransition()
-    CompositionLocalProvider(LocalImageWidth provides imageWidth) {
+    CompositionLocalProvider(
+        LocalImageWidth provides imageWidth,
+        LocalImageWidthPx provides imageWidthPx
+    ) {
         LazyVerticalGrid(columns = GridCells.Fixed(10)) {
             items(200) { index ->
                 when (index % 3) {
@@ -97,14 +110,19 @@ fun GridScaleItem(index: Int, infiniteTransition: InfiniteTransition) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun GridImage(index: Int, modifier: Modifier = Modifier) {
+    val columnWidthPx = LocalImageWidthPx.current
     val columnWidth = LocalImageWidth.current
     AsyncImage(
         model = ImageRequest.Builder(LocalPlatformContext.current)
             .data(Res.getUri("drawable/${index % 20}.jpeg"))
-            .size(columnWidth, columnWidth) // Equivalent to cacheHeight and cacheWidth in Flutter
+            .size(
+                columnWidthPx,
+                columnWidthPx
+            ) // Equivalent to cacheHeight and cacheWidth in Flutter
             .build(),
         contentDescription = null,
         contentScale = ContentScale.FillBounds,
         modifier = modifier.aspectRatio(1f)
+            .size(columnWidth, columnWidth)
     )
 }

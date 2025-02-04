@@ -17,7 +17,7 @@ actual fun getPlatform(): Platform = IOSPlatform()
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-actual fun getScreenWidth(): Int = LocalWindowInfo.current.containerSize.width
+actual fun getScreenWidth(): Dp = LocalWindowInfo.current.containerSize.width.dp
 
 
 //fun Int.pxToPoint(): Double = this.toDouble() / UIScreen.mainScreen.scale

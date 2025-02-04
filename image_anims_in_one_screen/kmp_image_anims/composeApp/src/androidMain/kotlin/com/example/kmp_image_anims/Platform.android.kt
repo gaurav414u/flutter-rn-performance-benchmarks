@@ -13,4 +13,4 @@ class AndroidPlatform : Platform {
 actual fun getPlatform(): Platform = AndroidPlatform()
 
 @Composable
-actual fun getScreenWidth(): Int = LocalConfiguration.current.screenWidthDp
+actual fun getScreenWidth(): Dp = LocalConfiguration.current.screenWidthDp.dp
