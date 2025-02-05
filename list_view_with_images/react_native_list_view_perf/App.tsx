@@ -1,12 +1,5 @@
-import React, {Component, createRef} from 'react';
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Button,
-} from 'react-native';
+import React, {useRef, useEffect, useState, useCallback} from 'react';
+import {StyleSheet, Text, View, Button} from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Animated, {
   Easing,
@@ -15,139 +8,123 @@ import Animated, {
   withTiming,
   withRepeat,
 } from 'react-native-reanimated';
-import { FlashList } from "@shopify/flash-list";
-
+import {FlashList} from '@shopify/flash-list';
 
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 
-let data = Array(1001)
+const data = Array(1001)
   .fill(null)
-  .map((_, i) => {
-    let color =
-      'rgb(' +
-      Math.floor(Math.random() * 256) +
-      ',' +
-      Math.floor(Math.random() * 256) +
-      ',' +
-      Math.floor(Math.random() * 256) +
-      ')';
-    return {
-      key: String(i),
-      color: color,
-    };
-  });
+  .map((_, i) => ({
+    key: String(i),
+    color: `rgb(${Math.floor(Math.random() * 256)},${Math.floor(
+      Math.random() * 256,
+    )},${Math.floor(Math.random() * 256)})`,
+  }));
 
-let currentOffset = 0;
-let intervalTime = 300;
-const scrollDuration = 500000; // 500 seconds in milliseconds
-const flatListRef = createRef();
+const intervalTime = 300;
+const scrollDuration = 500000;
 
-export default class App extends Component {
-  _scrollOffset = (speed, totalScroll) => {
-    if (currentOffset >= totalScroll) {
-      this._stopAutoPlay();
-    }
-    flatListRef.current.scrollToOffset({
-      offset: currentOffset,
-      animated: true,
+const App = () => {
+  const flatListRef = useRef(null);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const timerRef = useRef(null);
+
+  const scrollOffset = useCallback((speed, totalScroll) => {
+    setCurrentOffset(prevOffset => {
+      const newOffset = prevOffset + speed;
+      if (newOffset >= totalScroll) {
+        stopAutoPlay();
+        return prevOffset;
+      }
+      flatListRef.current?.scrollToOffset({offset: newOffset, animated: true});
+      return newOffset;
     });
-    currentOffset += speed;
-  };
+  }, []);
 
-  _startAutoPlay = () => {
+  const startAutoPlay = useCallback(() => {
     const totalScrollDistance = data.length * (styles.item.height + 16);
-    const steps = scrollDuration / intervalTime; // Number of steps
-    const scrollSpeed = totalScrollDistance / steps; // Pixels per step
+    const steps = scrollDuration / intervalTime;
+    const scrollSpeed = totalScrollDistance / steps;
 
-
-    this._timerId = setInterval(() => this._scrollOffset(scrollSpeed, totalScrollDistance), intervalTime);
-  };
-
-  _stopAutoPlay = () => {
-    if (this._timerId) {
-      clearInterval(this._timerId);
-      this._timerId = null;
-    }
-  };
-
-  componentDidMount() {
-    this._stopAutoPlay();
-  }
-
-  componentWillUnmount() {
-    this._stopAutoPlay();
-  }
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <FlashList
-          ref={flatListRef}
-          testID={'long_list'}
-          accessibilityLabel={'long_list'}
-          data={data}
-          ItemSeparatorComponent={FlatListItemSeparator}
-          keyExtractor={item => item.key}
-          renderItem={({item}) => {
-            return (
-              <CustomRow index={item.key} color={item.color} label={item.key} />
-            );
-          }}
-        />
-        <View style={[{position: 'absolute', top: 16, left: 16, right: 16}]}>
-          <Button onPress={this._startAutoPlay} title="Start scroll" />
-        </View>
-      </View>
+    stopAutoPlay();
+    timerRef.current = setInterval(
+      () => scrollOffset(scrollSpeed, totalScrollDistance),
+      intervalTime,
     );
-  }
-}
+  }, [scrollOffset]);
 
-const FlatListItemSeparator = () => {
-  return <View style={{height: 16, width: '100%', backgroundColor: '#FFF'}} />;
+  const stopAutoPlay = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopAutoPlay();
+  }, [stopAutoPlay]);
+
+  return (
+    <View style={styles.container}>
+      <FlashList
+        ref={flatListRef}
+        testID={'long_list'}
+        accessibilityLabel={'long_list'}
+        data={data}
+        ItemSeparatorComponent={FlatListItemSeparator}
+        keyExtractor={item => item.key}
+        renderItem={({item}) => (
+          <CustomRow index={item.key} color={item.color} label={item.key} />
+        )}
+      />
+      <View style={{position: 'absolute', top: 16, left: 16, right: 16}}>
+        <Button onPress={startAutoPlay} title="Start scroll" />
+      </View>
+    </View>
+  );
 };
 
-const IMAGES = {
-  image0: require('./assets/images/0.jpeg'),
-  image1: require('./assets/images/1.jpeg'),
-  image2: require('./assets/images/2.jpeg'),
-  image3: require('./assets/images/3.jpeg'),
-  image4: require('./assets/images/4.jpeg'),
-  image5: require('./assets/images/5.jpeg'),
-  image6: require('./assets/images/6.jpeg'),
-  image7: require('./assets/images/7.jpeg'),
-  image8: require('./assets/images/8.jpeg'),
-  image9: require('./assets/images/9.jpeg'),
-  image10: require('./assets/images/10.jpeg'),
-  image11: require('./assets/images/11.jpeg'),
-  image12: require('./assets/images/12.jpeg'),
-  image13: require('./assets/images/13.jpeg'),
-  image14: require('./assets/images/14.jpeg'),
-  image15: require('./assets/images/15.jpeg'),
-  image16: require('./assets/images/16.jpeg'),
-  image17: require('./assets/images/17.jpeg'),
-  image18: require('./assets/images/18.jpeg'),
-  image19: require('./assets/images/19.jpeg'),
-};
+const FlatListItemSeparator = () => (
+  <View style={{height: 16, width: '100%', backgroundColor: '#FFF'}} />
+);
+const IMAGES = [
+  require('./assets/images/0.jpeg'),
+  require('./assets/images/1.jpeg'),
+  require('./assets/images/2.jpeg'),
+  require('./assets/images/3.jpeg'),
+  require('./assets/images/4.jpeg'),
+  require('./assets/images/5.jpeg'),
+  require('./assets/images/6.jpeg'),
+  require('./assets/images/7.jpeg'),
+  require('./assets/images/8.jpeg'),
+  require('./assets/images/9.jpeg'),
+  require('./assets/images/10.jpeg'),
+  require('./assets/images/11.jpeg'),
+  require('./assets/images/12.jpeg'),
+  require('./assets/images/13.jpeg'),
+  require('./assets/images/14.jpeg'),
+  require('./assets/images/15.jpeg'),
+  require('./assets/images/16.jpeg'),
+  require('./assets/images/17.jpeg'),
+  require('./assets/images/18.jpeg'),
+  require('./assets/images/19.jpeg'),
+];
 
-function getImage(num) {
-  return IMAGES['image' + (num % 20)];
-}
+const getImage = num => IMAGES[num % 20];
 
-function CustomRow({index, color, label}) {
+const CustomRow = ({index, color, label}) => {
   const spinValue = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{rotate: `${spinValue.value}deg`}],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{rotate: `${spinValue.value}deg`}],
+  }));
 
-  React.useEffect(() => {
+  useEffect(() => {
     spinValue.value = withRepeat(
       withTiming(360, {duration: 5000, easing: Easing.linear}),
       -1,
     );
-  }, []);
+  }, [spinValue]);
 
   return (
     <View style={[styles.item_container, {backgroundColor: color}]}>
@@ -167,20 +144,12 @@ function CustomRow({index, color, label}) {
       </Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  item_container: {
-    height: 100,
-    flexDirection: 'row',
-  },
-  image: {
-    height: 100,
-    width: 100,
-  },
+  container: {flex: 1},
+  item_container: {height: 100, flexDirection: 'row'},
+  image: {height: 100, width: 100},
   item: {
     textAlign: 'center',
     textAlignVertical: 'center',
@@ -189,3 +158,5 @@ const styles = StyleSheet.create({
     height: 100,
   },
 });
+
+export default App;
