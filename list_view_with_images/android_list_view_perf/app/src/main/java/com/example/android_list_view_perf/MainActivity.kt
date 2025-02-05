@@ -1,6 +1,7 @@
 package com.example.android_list_view_perf
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.LinearEasing
@@ -10,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,9 +27,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +43,8 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +55,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+val LocalItemHeight = staticCompositionLocalOf<Float> { error("Item height not provided") }
+
 data class Item(val index: Int, val color: Color)
+
 
 @Composable
 fun TestScreen() {
@@ -57,27 +66,44 @@ fun TestScreen() {
     val coroutineScope = rememberCoroutineScope()
     val data = remember { generateData() }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(20.dp) // Adjust spacing as needed
-        ) {
-            items(data) { item ->
-                Cell(item)
-            }
-        }
+    val itemHeight = with(
+        androidx.compose.ui.platform.LocalDensity.current
+    ) { 100.dp.toPx() }
+    val spacerHeight = with(
+        androidx.compose.ui.platform.LocalDensity.current
+    ) { 20.dp.toPx() }
 
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    listState.animateScrollToItem(1000)
+    CompositionLocalProvider(LocalItemHeight provides itemHeight) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(20.dp) // Adjust spacing as needed
+            ) {
+                items(data) { item ->
+                    Cell(item)
                 }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text("Start Scrolling")
+            }
+
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollBy(
+                            1000f * (itemHeight + spacerHeight),
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(
+                                    1000.toDuration(DurationUnit.SECONDS).inWholeMilliseconds.toInt(),
+                                    easing = LinearEasing
+                                ),
+                            )
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Start Scrolling")
+            }
         }
     }
 }
@@ -102,7 +128,10 @@ fun Cell(item: Item) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data("file:///android_asset/images/${item.index % 20}.jpeg")
-                .size(100, 100) // Equivalent to cacheHeight and cacheWidth in Flutter
+                .size(
+                    LocalItemHeight.current.toInt(),
+                    LocalItemHeight.current.toInt()
+                )
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
@@ -113,7 +142,10 @@ fun Cell(item: Item) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data("file:///android_asset/images/${item.index % 20}.jpeg")
-                .size(100, 100) // Equivalent to cacheHeight and cacheWidth in Flutter
+                .size(
+                    LocalItemHeight.current.toInt(),
+                    LocalItemHeight.current.toInt()
+                )
                 .build(),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
