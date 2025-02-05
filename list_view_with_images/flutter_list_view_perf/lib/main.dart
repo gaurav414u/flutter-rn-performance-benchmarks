@@ -123,6 +123,8 @@ class _CellState extends State<Cell> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+    var sizePx = (100 * devicePixelRatio).floor();
     return Container(
       height: 100,
       color: widget.item.color,
@@ -132,8 +134,8 @@ class _CellState extends State<Cell> with TickerProviderStateMixin {
             getImage(widget.item.index),
             height: 100.0,
             width: 100.0,
-            cacheHeight: 100,
-            cacheWidth: 100,
+            cacheHeight: sizePx,
+            cacheWidth: sizePx,
             fit: BoxFit.fill,
           ),
           RotationTransition(
@@ -143,8 +145,8 @@ class _CellState extends State<Cell> with TickerProviderStateMixin {
               height: 100.0,
               width: 100.0,
               fit: BoxFit.fill,
-              cacheHeight: 100,
-              cacheWidth: 100,
+              cacheHeight: sizePx,
+              cacheWidth: sizePx,
             ),
           ),
           Center(
