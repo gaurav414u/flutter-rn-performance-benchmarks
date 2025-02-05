@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      showPerformanceOverlay: false,
+      showPerformanceOverlay: true,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -31,16 +31,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   void didChangeDependencies() {
+    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     var height = MediaQuery.of(context).size.width / 10;
     var width = height;
+    var sizePx = (width * devicePixelRatio).floor();
     for (var index = 0; index < 10; index++) {
       precacheImage(
         Image.asset(
           GridRotareItem.getImage(index),
           height: height,
           width: width,
-          cacheHeight: height.floor(),
-          cacheWidth: width.floor(),
+          cacheHeight: sizePx,
+          cacheWidth: sizePx,
           fit: BoxFit.cover,
         ).image,
         context,
@@ -91,6 +93,7 @@ class _GridRotareItemState extends State<GridRotareItem>
   late AnimationController animationController;
   late double height;
   late double width;
+  late int sizePx;
 
   @override
   void initState() {
@@ -104,10 +107,18 @@ class _GridRotareItemState extends State<GridRotareItem>
 
   @override
   void didChangeDependencies() {
-    height = MediaQuery.of(context).size.width / 10;
+    double devicePixelRatio = MediaQuery
+        .of(context)
+        .devicePixelRatio;
+    height = MediaQuery
+        .of(context)
+        .size
+        .width / 10;
     width = height;
+    sizePx = (width * devicePixelRatio).floor();
     super.didChangeDependencies();
   }
+
 
   @override
   void dispose() {
@@ -123,8 +134,8 @@ class _GridRotareItemState extends State<GridRotareItem>
         GridRotareItem.getImage(widget.index),
         height: height,
         width: width,
-        cacheHeight: height.floor(),
-        cacheWidth: width.floor(),
+        cacheHeight: sizePx,
+        cacheWidth: sizePx,
         fit: BoxFit.cover,
       ),
     );
@@ -150,6 +161,7 @@ class _GridFadeItemState extends State<GridFadeItem>
   late AnimationController animationController;
   late double height;
   late double width;
+  late int sizePx;
 
   @override
   void initState() {
@@ -163,8 +175,10 @@ class _GridFadeItemState extends State<GridFadeItem>
 
   @override
   void didChangeDependencies() {
+    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     height = MediaQuery.of(context).size.width / 10;
     width = height;
+    sizePx = (width * devicePixelRatio).floor();
     super.didChangeDependencies();
   }
 
@@ -182,8 +196,8 @@ class _GridFadeItemState extends State<GridFadeItem>
         GridFadeItem.getImage(widget.index),
         height: height,
         width: width,
-        cacheHeight: height.floor(),
-        cacheWidth: width.floor(),
+        cacheHeight: sizePx,
+        cacheWidth: sizePx,
         fit: BoxFit.fill,
       ),
     );
@@ -209,6 +223,7 @@ class _GridScaleItemState extends State<GridScaleItem>
   late AnimationController animationController;
   late double height;
   late double width;
+  late int sizePx;
 
   @override
   void initState() {
@@ -222,8 +237,10 @@ class _GridScaleItemState extends State<GridScaleItem>
 
   @override
   void didChangeDependencies() {
+    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     height = MediaQuery.of(context).size.width / 10;
     width = height;
+    sizePx = (width * devicePixelRatio).floor();
     super.didChangeDependencies();
   }
 
@@ -241,8 +258,8 @@ class _GridScaleItemState extends State<GridScaleItem>
         GridScaleItem.getImage(widget.index),
         height: width,
         width: height,
-        cacheHeight: height.floor(),
-        cacheWidth: width.floor(),
+        cacheHeight: sizePx,
+        cacheWidth: sizePx,
         fit: BoxFit.cover,
       ),
     );
