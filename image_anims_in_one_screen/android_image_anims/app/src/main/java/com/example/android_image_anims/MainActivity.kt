@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 
@@ -39,6 +41,7 @@ class MainActivity : ComponentActivity() {
 }
 
 val LocalImageWidth = staticCompositionLocalOf<Int> { error("Column width not provided") }
+val LocalImageWidthPx = staticCompositionLocalOf<Int> { error("Column width not provided") }
 
 
 @Composable
@@ -46,9 +49,15 @@ fun GridScreen() {
     // Get screen width from LocalConfiguration
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val imageWidth = screenWidth / 10
+    val imageWidthPx = with(
+        androidx.compose.ui.platform.LocalDensity.current
+    ) { imageWidth.dp.toPx().toInt() }
 
     val infiniteTransition = rememberInfiniteTransition()
-    CompositionLocalProvider(LocalImageWidth provides imageWidth) {
+    CompositionLocalProvider(
+        LocalImageWidth provides imageWidth,
+        LocalImageWidthPx provides imageWidthPx
+    ) {
         LazyVerticalGrid(columns = GridCells.Fixed(10)) {
             items(200) { index ->
                 when (index % 3) {
@@ -102,14 +111,20 @@ fun GridScaleItem(index: Int, infiniteTransition: InfiniteTransition) {
 
 @Composable
 fun GridImage(index: Int, modifier: Modifier = Modifier) {
+    val columnWidthPx = LocalImageWidthPx.current
     val columnWidth = LocalImageWidth.current
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data("file:///android_asset/images/${index % 20}.jpeg")
-            .size(columnWidth, columnWidth) // Equivalent to cacheHeight and cacheWidth in Flutter
+            .size(
+                columnWidthPx,
+                columnWidthPx
+            ) // Equivalent to cacheHeight and cacheWidth in Flutterh
             .build(),
         contentDescription = null,
         contentScale = ContentScale.FillBounds,
-        modifier = modifier.aspectRatio(1f)
+        modifier = modifier
+            .aspectRatio(1f)
+            .size(columnWidth.dp, columnWidth.dp)
     )
 }
