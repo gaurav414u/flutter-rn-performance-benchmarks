@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:show_fps/show_fps.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,7 +16,11 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: ShowFPS(
+          alignment: Alignment.bottomRight,
+          visible: true,
+          showChart: true,
+          child: MyHomePage(title: 'Flutter Demo Home Page')),
     );
   }
 }
@@ -213,7 +218,9 @@ class GridScaleItem extends StatefulWidget {
   _GridScaleItemState createState() => _GridScaleItemState();
 
   static String getImage(int index) {
-    var url = 'assets/images/${index % 20}.jpeg';
+
+    var url = 'assets/images/${index % 20}.jpeg' ;
+
     return url;
   }
 }
