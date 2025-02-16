@@ -207,7 +207,8 @@ class _GridFadeItemState extends State<GridFadeItem>
         cacheWidth: sizePx,
         fit: BoxFit.fill,
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (frame != null) widget.onImageLoaded();
+          if ((frame != null && frame == 0) || wasSynchronouslyLoaded)
+            widget.onImageLoaded();
           return child;
         },
       ),
@@ -277,7 +278,8 @@ class _GridScaleItemState extends State<GridScaleItem>
         cacheWidth: sizePx,
         fit: BoxFit.cover,
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (frame != null) widget.onImageLoaded();
+          if ((frame != null && frame == 0) || wasSynchronouslyLoaded)
+            widget.onImageLoaded();
           return child;
         },
       ),
