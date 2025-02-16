@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "android_image_anims"
 include(":app")
- 
+include(":benchmark")
