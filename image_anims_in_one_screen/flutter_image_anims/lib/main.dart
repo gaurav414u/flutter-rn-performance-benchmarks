@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:show_fps/show_fps.dart';
 
 void main() {
@@ -34,26 +35,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  @override
-  void didChangeDependencies() {
-    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-    var height = MediaQuery.of(context).size.width / 10;
-    var width = height;
-    var sizePx = (width * devicePixelRatio).floor();
-    for (var index = 0; index < 10; index++) {
-      precacheImage(
-        Image.asset(
-          GridRotareItem.getImage(index),
-          height: height,
-          width: width,
-          cacheHeight: sizePx,
-          cacheWidth: sizePx,
-          fit: BoxFit.cover,
-        ).image,
-        context,
-      );
+  int loadedImages = 0;
+  final int totalImages = 200;
+  static const reportFullyDrawnChannel =
+      MethodChannel('com.example.flutter_image_anims_perf/reportFullyDrawn');
+
+  void _onImageLoaded() {
+    setState(() {
+      loadedImages++;
+      if (loadedImages == totalImages) {
+        _reportFullyDrawn();
+      }
+    });
+  }
+
+  _reportFullyDrawn() async {
+    print("sending custom fully drawn");
+    try {
+      await reportFullyDrawnChannel.invokeMethod<int>('reportFullyDrawn');
+    } on PlatformException catch (e) {
+      print(e);
     }
-    super.didChangeDependencies();
   }
 
   @override
@@ -67,12 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
         itemBuilder: (context, index) {
           var animateIndex = index % 3;
           if (animateIndex == 0) {
-            return GridRotareItem(index: index);
+            return GridRotareItem(index: index, onImageLoaded: _onImageLoaded);
           }
           if (animateIndex == 1) {
-            return GridFadeItem(index: index);
+            return GridFadeItem(index: index, onImageLoaded: _onImageLoaded);
           }
-          return GridScaleItem(index: index);
+          return GridScaleItem(index: index, onImageLoaded: _onImageLoaded);
         },
       ),
     );
@@ -81,8 +83,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
 class GridRotareItem extends StatefulWidget {
   final int index;
+  final VoidCallback onImageLoaded;
 
-  const GridRotareItem({Key? key, required this.index}) : super(key: key);
+  const GridRotareItem(
+      {Key? key, required this.index, required this.onImageLoaded})
+      : super(key: key);
 
   @override
   _GridRotareItemState createState() => _GridRotareItemState();
@@ -112,18 +117,12 @@ class _GridRotareItemState extends State<GridRotareItem>
 
   @override
   void didChangeDependencies() {
-    double devicePixelRatio = MediaQuery
-        .of(context)
-        .devicePixelRatio;
-    height = MediaQuery
-        .of(context)
-        .size
-        .width / 10;
+    double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+    height = MediaQuery.of(context).size.width / 10;
     width = height;
     sizePx = (width * devicePixelRatio).floor();
     super.didChangeDependencies();
   }
-
 
   @override
   void dispose() {
@@ -142,6 +141,10 @@ class _GridRotareItemState extends State<GridRotareItem>
         cacheHeight: sizePx,
         cacheWidth: sizePx,
         fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (frame != null) widget.onImageLoaded();
+          return child;
+        },
       ),
     );
   }
@@ -149,8 +152,11 @@ class _GridRotareItemState extends State<GridRotareItem>
 
 class GridFadeItem extends StatefulWidget {
   final int index;
+  final VoidCallback onImageLoaded;
 
-  const GridFadeItem({Key? key, required this.index}) : super(key: key);
+  const GridFadeItem(
+      {Key? key, required this.index, required this.onImageLoaded})
+      : super(key: key);
 
   @override
   _GridFadeItemState createState() => _GridFadeItemState();
@@ -204,6 +210,10 @@ class _GridFadeItemState extends State<GridFadeItem>
         cacheHeight: sizePx,
         cacheWidth: sizePx,
         fit: BoxFit.fill,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (frame != null) widget.onImageLoaded();
+          return child;
+        },
       ),
     );
   }
@@ -211,15 +221,17 @@ class _GridFadeItemState extends State<GridFadeItem>
 
 class GridScaleItem extends StatefulWidget {
   final int index;
+  final VoidCallback onImageLoaded;
 
-  const GridScaleItem({Key? key, required this.index}) : super(key: key);
+  const GridScaleItem(
+      {Key? key, required this.index, required this.onImageLoaded})
+      : super(key: key);
 
   @override
   _GridScaleItemState createState() => _GridScaleItemState();
 
   static String getImage(int index) {
-
-    var url = 'assets/images/${index % 20}.jpeg' ;
+    var url = 'assets/images/${index % 20}.jpeg';
 
     return url;
   }
@@ -268,8 +280,11 @@ class _GridScaleItemState extends State<GridScaleItem>
         cacheHeight: sizePx,
         cacheWidth: sizePx,
         fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (frame != null) widget.onImageLoaded();
+          return child;
+        },
       ),
     );
   }
 }
-
