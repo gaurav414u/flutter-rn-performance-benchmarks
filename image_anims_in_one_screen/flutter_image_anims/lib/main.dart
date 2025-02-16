@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:show_fps/show_fps.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,11 +16,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: ShowFPS(
-          alignment: Alignment.bottomRight,
-          visible: true,
-          showChart: true,
-          child: MyHomePage(title: 'Flutter Demo Home Page')),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -142,7 +137,8 @@ class _GridRotareItemState extends State<GridRotareItem>
         cacheWidth: sizePx,
         fit: BoxFit.cover,
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (frame != null) widget.onImageLoaded();
+          if ((frame != null && frame == 0) || wasSynchronouslyLoaded)
+            widget.onImageLoaded();
           return child;
         },
       ),
