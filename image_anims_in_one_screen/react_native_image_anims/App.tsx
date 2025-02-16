@@ -1,4 +1,5 @@
-import React, {useEffect} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+
 import {
   SafeAreaView,
   StyleSheet,
@@ -17,6 +18,10 @@ import Animated, {
   Easing,
   interpolate,
 } from 'react-native-reanimated';
+import { NativeModules } from 'react-native';
+
+const { ReportFullyDrawn } = NativeModules;
+
 
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 
@@ -55,8 +60,11 @@ for (let i = 0; i < data.length; i++) {
   };
 }
 
+
 const App = () => {
   const globalAnimation = useSharedValue(0);
+  const [loadedImages, setLoadedImages] = useState(0);
+  const hasReported = useRef(false);
 
   useEffect(() => {
     globalAnimation.value = withRepeat(
@@ -68,23 +76,32 @@ const App = () => {
     );
   }, [globalAnimation]);
 
+  useEffect(() => {
+    if (loadedImages === data.length && !hasReported.current) {
+      hasReported.current = true;
+      ReportFullyDrawn.reportFullyDrawn();
+    }
+  }, [loadedImages]);
+
+  const handleImageLoad = () => {
+    setLoadedImages((prev) => prev + 1);
+  };
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <FlatList
           data={data}
-          renderItem={({item}) => {
+          renderItem={({ item }) => {
             let index = item.key % 3;
             if (index === 0) {
-              return <RotatingImage index={item.key} />;
+              return <RotatingImage index={item.key} onLoad={handleImageLoad} />;
             }
             if (index === 1) {
-              return <ScalingImage index={item.key} />;
+              return <ScalingImage index={item.key} onLoad={handleImageLoad} />;
             }
-            if (index === 2) {
-              return <FadingImage source={item.src} />;
-            }
+            return <FadingImage source={item.src} onLoad={handleImageLoad} />;
           }}
           numColumns={10}
           keyExtractor={(item, index) => index.toString()}
@@ -94,7 +111,7 @@ const App = () => {
   );
 };
 
-const RotatingImage = ({index}) => {
+const RotatingImage = ({ index, onLoad }) => {
   const rotateValue = useSharedValue(0);
 
   useEffect(() => {
@@ -103,25 +120,25 @@ const RotatingImage = ({index}) => {
         duration: 5000,
         easing: Easing.linear,
       }),
-      -1,
+      -1
     );
   }, [rotateValue]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const rotate = `${rotateValue.value}deg`;
-    return {transform: [{rotate}]};
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotateValue.value}deg` }],
+  }));
 
   return (
     <AnimatedFastImage
       style={[styles.imageThumbnail, animatedStyle]}
       source={getImage(index)}
+      onLoad={onLoad}
       resizeMode={'stretch'}
     />
   );
 };
 
-const ScalingImage = ({index}) => {
+const ScalingImage = ({ index, onLoad }) => {
   const scaleValue = useSharedValue(0);
 
   useEffect(() => {
@@ -130,25 +147,25 @@ const ScalingImage = ({index}) => {
         duration: 5000,
         easing: Easing.linear,
       }),
-      -1,
+      -1
     );
   }, [scaleValue]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const scale = scaleValue.value;
-    return {transform: [{scale}]};
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleValue.value }],
+  }));
 
   return (
     <AnimatedFastImage
       style={[styles.imageThumbnail, animatedStyle]}
       source={getImage(index)}
+      onLoad={onLoad}
       resizeMode={'stretch'}
     />
   );
 };
 
-const FadingImage = ({source}) => {
+const FadingImage = ({ source, onLoad }) => {
   const opacityValue = useSharedValue(0);
 
   useEffect(() => {
@@ -157,7 +174,7 @@ const FadingImage = ({source}) => {
         duration: 5000,
         easing: Easing.linear,
       }),
-      -1,
+      -1
     );
   }, [opacityValue]);
 
@@ -170,6 +187,7 @@ const FadingImage = ({source}) => {
       <AnimatedFastImage
         style={[styles.imageThumbnail, animatedStyle]}
         source={source}
+        onLoad={onLoad}
         resizeMode={'stretch'}
       />
     </View>
