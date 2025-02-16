@@ -12,3 +12,5 @@ expect fun getPlatform(): Platform
 
 @Composable
 expect fun getScreenWidth(): Dp
+
+expect fun reportFullyDrawn()

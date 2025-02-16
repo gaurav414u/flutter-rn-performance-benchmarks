@@ -20,4 +20,8 @@ actual fun getPlatform(): Platform = IOSPlatform()
 actual fun getScreenWidth(): Dp = LocalWindowInfo.current.containerSize.width.dp
 
 
+actual fun reportFullyDrawn() {
+    // no-op
+}
+
 //fun Int.pxToPoint(): Double = this.toDouble() / UIScreen.mainScreen.scale
