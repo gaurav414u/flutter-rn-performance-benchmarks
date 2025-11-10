@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:show_fps/show_fps.dart';
 
 Random rand = Random();
 
@@ -23,7 +24,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: TestPage(title: 'Flutter Demo Home Page'),
+      home: ShowFPS(
+          alignment: Alignment.bottomRight,
+          visible: true,
+          showChart: true,
+          child: TestPage(title: 'Flutter Demo Home Page')),
     );
   }
 }
@@ -125,6 +130,7 @@ class _CellState extends State<Cell> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
     var sizePx = (100 * devicePixelRatio).floor();
+    // var sizePx = 100;
     return Container(
       height: 100,
       color: widget.item.color,
